@@ -1,38 +1,49 @@
-function getCookie(request, name) {
-  const cookie = request.headers.get("Cookie") || "";
-  const parts = cookie.split(";").map(s => s.trim());
-  for (const p of parts) {
-    const [k, ...rest] = p.split("=");
-    if (k === name) return decodeURIComponent(rest.join("="));
-  }
-  return null;
-}
-
-async function sha256Hex(input) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
 export async function onRequestGet({ request, env }) {
-  const voterId = getCookie(request, "voter_id");
-  if (!voterId) {
-    return new Response(JSON.stringify({ voted: false }), {
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
-    });
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+  const day = new Date().toISOString().slice(0, 10);
+
+  const cookies = parseCookies(request.headers.get("Cookie") || "");
+  const vh = cookies.vh || "";
+  const voter_hash = vh ? await sha256Hex(vh) : "";
+
+  const db = env.DB;
+
+  let byCookie = false;
+  if (voter_hash) {
+    const r = await db.prepare("SELECT 1 AS ok FROM votes WHERE voter_hash=? LIMIT 1").bind(voter_hash).first();
+    byCookie = !!r?.ok;
   }
 
-  const salt = env.VOTE_SALT || "change-me";
-  const voterHash = await sha256Hex(`${salt}:${voterId}`);
-
-  const row = await env.DB.prepare(
-    "SELECT choice, created_at FROM votes WHERE voter_hash = ? LIMIT 1"
-  ).bind(voterHash).first();
+  const r2 = await db.prepare("SELECT 1 AS ok FROM vote_ip_day WHERE ip=? AND day=? LIMIT 1").bind(ip, day).first();
+  const byIpDay = !!r2?.ok;
 
   return new Response(JSON.stringify({
-    voted: Boolean(row),
-    choice: row?.choice || null,
-    created_at: row?.created_at || null
+    voted: byCookie || byIpDay,
+    by: { cookie: byCookie, ip_day: byIpDay }
   }), {
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": "*",
+    },
   });
+}
+
+function parseCookies(cookieHeader) {
+  const out = {};
+  cookieHeader.split(";").forEach((p) => {
+    const i = p.indexOf("=");
+    if (i === -1) return;
+    const k = p.slice(0, i).trim();
+    const v = p.slice(i + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  });
+  return out;
+}
+
+async function sha256Hex(s) {
+  const bytes = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

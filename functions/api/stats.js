@@ -1,20 +1,20 @@
 export async function onRequestGet({ env }) {
-  const keepRow = await env.DB.prepare(
-    "SELECT COUNT(*) AS c FROM votes WHERE choice = ?"
-  ).bind("keep").first();
+  const db = env.DB;
 
-  const stepRow = await env.DB.prepare(
-    "SELECT COUNT(*) AS c FROM votes WHERE choice = ?"
-  ).bind("stepdown").first();
+  const keep = await db.prepare("SELECT COUNT(*) AS c FROM votes WHERE choice='keep'").first();
+  const stepdown = await db.prepare("SELECT COUNT(*) AS c FROM votes WHERE choice='stepdown'").first();
+  const total = (keep?.c || 0) + (stepdown?.c || 0);
 
-  const keep = Number(keepRow?.c || 0);
-  const stepdown = Number(stepRow?.c || 0);
-  const total = keep + stepdown;
-
-  return new Response(JSON.stringify({ keep, stepdown, total }), {
+  return new Response(JSON.stringify({
+    keep: keep?.c || 0,
+    stepdown: stepdown?.c || 0,
+    total
+  }), {
+    status: 200,
     headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store"
-    }
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": "*",
+    },
   });
 }
