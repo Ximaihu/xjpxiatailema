@@ -1,49 +1,27 @@
-export async function onRequestGet({ request, env }) {
-  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
-  const day = new Date().toISOString().slice(0, 10);
+export async function onRequest(context) {
+  const { request, env } = context;
+  try {
+    const cookie = request.headers.get("Cookie") || "";
+    const m = cookie.match(/(?:^|;\s*)vh=([^;]+)/);
+    const voterHash = m ? decodeURIComponent(m[1]) : null;
 
-  const cookies = parseCookies(request.headers.get("Cookie") || "");
-  const vh = cookies.vh || "";
-  const voter_hash = vh ? await sha256Hex(vh) : "";
+    if (!voterHash) {
+      return new Response(JSON.stringify({ ok: true, voted: false }), {
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
+      });
+    }
 
-  const db = env.DB;
+    const row = await env.DB.prepare("SELECT choice, created_at FROM votes WHERE voter_hash = ? LIMIT 1")
+      .bind(voterHash)
+      .first();
 
-  let byCookie = false;
-  if (voter_hash) {
-    const r = await db.prepare("SELECT 1 AS ok FROM votes WHERE voter_hash=? LIMIT 1").bind(voter_hash).first();
-    byCookie = !!r?.ok;
+    return new Response(JSON.stringify({ ok: true, voted: !!row, choice: row?.choice || null, created_at: row?.created_at || null }), {
+      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ ok: false, error: String(e?.message || e) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
+    });
   }
-
-  const r2 = await db.prepare("SELECT 1 AS ok FROM vote_ip_day WHERE ip=? AND day=? LIMIT 1").bind(ip, day).first();
-  const byIpDay = !!r2?.ok;
-
-  return new Response(JSON.stringify({
-    voted: byCookie || byIpDay,
-    by: { cookie: byCookie, ip_day: byIpDay }
-  }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-}
-
-function parseCookies(cookieHeader) {
-  const out = {};
-  cookieHeader.split(";").forEach((p) => {
-    const i = p.indexOf("=");
-    if (i === -1) return;
-    const k = p.slice(0, i).trim();
-    const v = p.slice(i + 1).trim();
-    if (k) out[k] = decodeURIComponent(v);
-  });
-  return out;
-}
-
-async function sha256Hex(s) {
-  const bytes = new TextEncoder().encode(s);
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

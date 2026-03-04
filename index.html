@@ -1,96 +1,39 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>习近平下台了吗？</title>
+  <title>下台了吗？</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- 可选：Turnstile（正式发布建议开）。如果你不想用，删掉下面这一行和页面里的 turnstileToken 相关代码即可 -->
-  <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
-
   <style>
-    body {
-      background-color: #f3f4f6;
-      color: #1f2937;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    .counter-font {
-      font-family: 'Courier New', monospace;
-      letter-spacing: -2px;
-    }
-
-    .pulse-dot-green {
-      box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
-      animation: pulse-green 2s infinite;
-    }
-
-    @keyframes pulse-green {
-      0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
-      }
-
-      70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
-      }
-
-      100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
-      }
-    }
-
-    .flag-watermark {
-      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0) 50%, rgba(250, 204, 21, 0.05) 100%);
-    }
-
-    .music-btn {
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-      width: 90px;
-      overflow: hidden;
-    }
-
-    #youtube-player {
-      pointer-events: none;
-      opacity: 0.01;
-      position: fixed;
-      bottom: 0;
-      right: 0;
-      z-index: -1;
-    }
+    body { background-color:#f3f4f6; color:#1f2937; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+    .counter-font { font-family:'Courier New', monospace; letter-spacing:-2px; }
+    .flag-watermark { background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0) 50%, rgba(250, 204, 21, 0.05) 100%); }
+    .music-btn { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; width: 110px; overflow: hidden; }
+    .btn-text-wrap { overflow:hidden; white-space:nowrap; max-width:80px; display:inline-block; vertical-align:middle; }
+    @keyframes text-marquee { 0%{transform:translateX(0)} 15%{transform:translateX(0)} 75%{transform:translateX(-55%)} 90%{transform:translateX(-55%)} 100%{transform:translateX(0)} }
+    .music-btn.playing .btn-text-wrap { animation:text-marquee 3.5s ease-in-out infinite; }
+    .music-btn.playing { background-color:#CC0000 !important; color:#FFD700 !important; border-color:#CC0000 !important; }
+    #youtube { pointer-events:none; opacity:0.01; position:fixed; bottom:0; right:0; z-index:-1; }
   </style>
 </head>
 
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pb-20">
-
-  <div id="youtube-player"></div>
+  <div id="youtube"></div>
 
   <div class="w-full max-w-md bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xl relative flag-watermark">
-
     <div class="relative overflow-hidden border-b border-gray-100" style="background:#ffffff; padding:16px 20px 14px;">
       <div class="flex justify-between items-center relative z-10">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded"
-              style="background:#F59E0B; color:#111827; border:1px solid #F59E0B;">
-              ● 状态查询
-            </span>
+            <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded" style="background:#F59E0B; color:#111827; border:1px solid #F59E0B;">● 状态查询</span>
           </div>
-          <div class="font-black leading-none" style="font-size:26px; letter-spacing:-0.5px; color:#111827;">
-            习近平下台了吗？
-          </div>
+          <div class="font-black leading-none" style="font-size:26px; letter-spacing:-0.5px; color:#111827;">习近平下台了吗？</div>
         </div>
-
         <div class="flex items-center gap-2">
-          <button id="musicToggle"
-            class="music-btn flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold active:scale-95"
-            style="background:#FFD700; color:#CC0000; border:1px solid #CC0000;">
+          <button id="musicToggle" class="music-btn flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold active:scale-95" style="background:#FFD700; color:#CC0000; border:1px solid #CC0000;">
             <span>🎵</span>
-            <span id="musicText">播放</span>
+            <span class="btn-text-wrap"><span id="musicText">播放</span></span>
           </button>
         </div>
       </div>
@@ -104,47 +47,44 @@
 
     <div class="p-6 relative border-b border-gray-100 bg-amber-50/40">
       <div class="absolute top-4 right-4 !text-gray-900/10 text-8xl font-black select-none pointer-events-none">
-        <img src="./image.jpg" alt="Xi Jinping"
-          class="w-24 h-24 object-cover rounded-full border-4 border-black bg-white shadow-sm">
+        <img src="./image.jpg" alt="Xi Jinping" class="w-24 h-24 object-cover rounded-full border-4 border-black bg-white shadow-sm">
+      </div>
+
+      <div class="flex items-center space-x-2 mb-3 bg-amber-100 w-fit px-3 py-1 rounded-md border border-amber-200 shadow-sm">
+        <span class="text-amber-700 text-lg leading-none font-bold">?</span>
+        <span class="text-amber-900 text-xs font-bold tracking-widest uppercase">Query / 查询</span>
       </div>
 
       <h1 class="text-2xl font-bold text-gray-900 leading-tight mb-1">习近平</h1>
       <p class="text-gray-600 text-sm mb-6">Xi Jinping · 中国国家主席 / 中共中央总书记</p>
 
       <div class="bg-white rounded-xl p-5 border border-amber-200 relative overflow-hidden shadow-sm opacity-95">
-        <div class="text-gray-500 text-xs uppercase tracking-wider mb-2">
-          任期天数
-        </div>
-        <div id="tenure-days" class="text-4xl font-bold text-amber-700 counter-font mb-4">Calculating...</div>
+        <div class="text-gray-500 text-xs uppercase tracking-wider mb-2">任期天数</div>
+        <div id="tenure-days" class="text-4xl font-bold text-amber-700 counter-font mb-4">--</div>
 
-        <div class="text-amber-700 text-xs mt-0.5 font-mono" id="updated-at">Updated: --</div>
+        <div class="bg-amber-50 p-3 mb-4 rounded border-l-4 border-amber-400">
+          <div class="text-[10px] text-amber-700 font-bold uppercase tracking-widest mb-1">ℹ️ Updated</div>
+          <div class="text-amber-900 font-bold flex items-center gap-2">
+            <span id="updated-at">--</span>
+          </div>
+        </div>
 
         <div class="flex justify-between mt-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
           <span>生: 1953.06.15</span>
           <span id="age-info" class="text-amber-700 font-bold bg-amber-50 px-1 rounded">年龄: --</span>
         </div>
+        <div class="mt-2 text-xs text-gray-600">
+          <span class="font-bold">任期起点:</span> <span class="font-mono">2012.11.15</span>
+        </div>
       </div>
     </div>
 
     <div class="p-6 bg-white">
-      <div class="text-sm font-black text-gray-900 mb-3">匿名投票</div>
-
-      <!-- 可选：Turnstile 小组件（正式发布建议开）。要用就取消注释，并在 Cloudflare 配置 sitekey -->
-      <!--
-      <div class="mb-3">
-        <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY"></div>
-      </div>
-      -->
+      <div class="text-sm font-black text-gray-900 mb-2">匿名投票</div>
 
       <div class="grid grid-cols-2 gap-3">
-        <button id="voteKeep"
-          class="px-3 py-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 font-bold text-sm active:scale-95">
-          希望继续连任
-        </button>
-        <button id="voteStepDown"
-          class="px-3 py-3 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 font-bold text-sm active:scale-95">
-          希望下台
-        </button>
+        <button id="voteKeep" class="px-3 py-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 font-bold text-sm active:scale-95">希望继续连任</button>
+        <button id="voteStepDown" class="px-3 py-3 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 font-bold text-sm active:scale-95">希望下台</button>
       </div>
 
       <div class="mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-4">
@@ -174,7 +114,8 @@
             </div>
           </div>
 
-          <div class="text-xs text-gray-600" id="voteNote"></div>
+          <div class="text-xs text-gray-500" id="voteNote">总票数: 0</div>
+          <div class="text-xs font-bold text-gray-700" id="voteState"></div>
         </div>
       </div>
     </div>
@@ -182,75 +123,70 @@
     <div class="h-2 w-full bg-red-600"></div>
   </div>
 
+  <div class="mt-6 text-gray-500 text-xs font-mono text-center">
+    BGM: 黃明志 - 《千千萬萬個我》
+  </div>
+
   <script>
-    // ---------- cookie voter_id（每个浏览器一个随机 id） ----------
-    function getCookie(name) {
-      const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-      return m ? decodeURIComponent(m[2]) : null;
-    }
-
-    function setCookie(name, value, days) {
-      const d = new Date();
-      d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/; SameSite=Lax; Secure`;
-    }
-
-    function ensureVoterId() {
-      let id = getCookie("voter_id");
-      if (!id) {
-        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + "-" + Math.random());
-        setCookie("voter_id", id, 3650);
-      }
-      return id;
-    }
-    ensureVoterId();
-
-    // ---------- YouTube 单曲播放器 ----------
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    var player;
+    var yt;
     var isPlaying = false;
 
     function onYouTubeIframeAPIReady() {
-      player = new YT.Player('youtube-player', {
+      yt = new YT.Player('youtube', {
         height: '1',
         width: '1',
-        videoId: 'MGhM4lxlewI',
-        playerVars: {
-          'playsinline': 1,
-          'controls': 0,
-          'fs': 0,
-          'loop': 1,
-          'playlist': 'MGhM4lxlewI',
-          'origin': window.location.origin
-        },
-        events: { 'onReady': onPlayerReady }
+        videoId: 'vYmIfuIiYBc',
+        playerVars: { 'playsinline': 1, 'controls': 0, 'fs': 0, 'loop': 1, 'playlist': 'vYmIfuIiYBc', 'origin': window.location.origin },
+        events: { 'onReady': onYTReady }
       });
     }
 
-    function onPlayerReady(event) {
-      event.target.setVolume(80);
+    function onYTReady(e) {
+      e.target.setVolume(80);
       const btn = document.getElementById('musicToggle');
-      const text = document.getElementById('musicText');
+      const txt = document.getElementById('musicText');
 
       btn.addEventListener('click', function () {
         if (!isPlaying) {
-          player.playVideo();
+          yt.playVideo();
+          yt.unMute();
+          yt.setVolume(80);
           isPlaying = true;
-          text.innerText = '暂停';
-          setTimeout(() => { player.unMute(); player.setVolume(80); }, 300);
+          btn.classList.add('playing');
+          txt.innerText = '播放中';
         } else {
-          player.pauseVideo();
+          yt.pauseVideo();
           isPlaying = false;
-          text.innerText = '播放';
+          btn.classList.remove('playing');
+          txt.innerText = '播放';
         }
       });
+
+      var start = function () {
+        if (!isPlaying) {
+          yt.playVideo();
+          yt.unMute();
+          yt.setVolume(80);
+          isPlaying = true;
+          btn.classList.add('playing');
+          txt.innerText = '播放中';
+        }
+        document.removeEventListener('click', start);
+        document.removeEventListener('touchstart', start);
+        document.removeEventListener('keydown', start);
+      };
+      document.addEventListener('click', start);
+      document.addEventListener('touchstart', start);
+      document.addEventListener('keydown', start);
     }
 
-    // ---------- 任期天数 + 年龄 ----------
+    function pad(x) { return String(x).padStart(2, '0'); }
+
     function calculateTenureAndAge() {
       const tenureStart = new Date('2012-11-15');
       const now = new Date();
@@ -265,106 +201,86 @@
       const birth = new Date('1953-06-15');
       let age = now.getFullYear() - birth.getFullYear();
       const m = now.getMonth() - birth.getMonth();
-      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
-        age--;
-      }
-      document.getElementById('age-info').innerText = `年龄: ${age}`;
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+      document.getElementById('age-info').innerText = "年龄: " + age;
 
-      const pad = (x) => String(x).padStart(2, '0');
       document.getElementById('updated-at').innerText =
-        `Updated: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    }
-    calculateTenureAndAge();
-    setInterval(calculateTenureAndAge, 60 * 1000);
-
-    // ---------- 统计与投票（D1） ----------
-    function pad2(x) { return String(x).padStart(2, "0"); }
-    function setVoteUpdated() {
-      const now = new Date();
-      document.getElementById("voteUpdated").innerText =
-        `Updated: ${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+        now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     }
 
-    function disableVoting(note) {
-      document.getElementById("voteKeep").disabled = true;
-      document.getElementById("voteStepDown").disabled = true;
-      document.getElementById("voteKeep").classList.add("opacity-50");
-      document.getElementById("voteStepDown").classList.add("opacity-50");
-      document.getElementById("voteNote").innerText = note || "";
+    async function fetchJSON(url, opts) {
+      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opts || {}));
+      const t = await r.text();
+      let j;
+      try { j = JSON.parse(t); } catch (e) { j = { ok: false, error: t || ("HTTP " + r.status) }; }
+      if (!r.ok && j && j.ok !== true) return j;
+      return j;
     }
 
-    async function refreshStats() {
-      const res = await fetch("/api/stats?t=" + Date.now(), { cache: "no-store" });
-      const data = await res.json();
+    function setVoteUI(voted, choice) {
+      const btnKeep = document.getElementById("voteKeep");
+      const btnStep = document.getElementById("voteStepDown");
+      const state = document.getElementById("voteState");
+      if (voted) {
+        btnKeep.disabled = true;
+        btnStep.disabled = true;
+        btnKeep.classList.add("opacity-50");
+        btnStep.classList.add("opacity-50");
+        state.innerText = choice ? ("你已投票: " + (choice === "keep" ? "希望继续连任" : "希望下台")) : "你已投过票。";
+      } else {
+        btnKeep.disabled = false;
+        btnStep.disabled = false;
+        btnKeep.classList.remove("opacity-50");
+        btnStep.classList.remove("opacity-50");
+        state.innerText = "";
+      }
+    }
 
-      const keep = Number(data.keep || 0);
-      const stepdown = Number(data.stepdown || 0);
-      const total = Number(data.total || 0);
+    function renderStats(s) {
+      const keep = Number(s.keep || 0);
+      const stepdown = Number(s.stepdown || 0);
+      const total = Number(s.total || (keep + stepdown));
 
       document.getElementById("keepCount").innerText = String(keep);
       document.getElementById("stepDownCount").innerText = String(stepdown);
 
       const keepPct = total === 0 ? 0 : Math.round((keep / total) * 100);
-      const stepPct = total === 0 ? 0 : (100 - keepPct);
+      const stepPct = total === 0 ? 0 : 100 - keepPct;
 
       document.getElementById("keepBar").style.width = keepPct + "%";
       document.getElementById("stepDownBar").style.width = stepPct + "%";
+      document.getElementById("voteNote").innerText = "总票数: " + total;
 
-      if (total === 0) {
-        document.getElementById("voteNote").innerText = "";
-      } else {
-        document.getElementById("voteNote").innerText = `总票数: ${total}。继续连任 ${keepPct}% / 希望下台 ${stepPct}%。`;
-      }
-
-      setVoteUpdated();
+      const now = new Date();
+      document.getElementById("voteUpdated").innerText =
+        "Updated: " + now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     }
 
-    async function refreshMe() {
-      const res = await fetch("/api/me?t=" + Date.now(), { cache: "no-store" });
-      const me = await res.json();
-      if (me && me.voted) {
-        const label = me.choice === "keep" ? "希望继续连任" : "希望下台";
-        disableVoting(`你已经投过票：${label}`);
-      }
+    async function refreshAll() {
+      const [me, stats] = await Promise.all([
+        fetchJSON("/api/me"),
+        fetchJSON("/api/stats")
+      ]);
+      if (stats && stats.ok) renderStats(stats);
+      if (me && me.ok) setVoteUI(!!me.voted, me.choice);
     }
 
-    async function submitVote(choice) {
-      // 可选：Turnstile token（如果你启用了 Turnstile）
-      let turnstileToken = null;
-      // if (window.turnstile) {
-      //   turnstileToken = turnstile.getResponse();
-      // }
+    document.getElementById("voteKeep").addEventListener("click", async function () {
+      const res = await fetchJSON("/api/vote", { method: "POST", body: JSON.stringify({ choice: "keep" }) });
+      if (!res || !res.ok) { alert("提交失败"); return; }
+      await refreshAll();
+    });
 
-      const res = await fetch("/api/vote", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ choice, turnstileToken })
-      });
+    document.getElementById("voteStepDown").addEventListener("click", async function () {
+      const res = await fetchJSON("/api/vote", { method: "POST", body: JSON.stringify({ choice: "stepdown" }) });
+      if (!res || !res.ok) { alert("提交失败"); return; }
+      await refreshAll();
+    });
 
-      if (res.status === 409) {
-        disableVoting("你已经投过票。");
-        await refreshStats();
-        return;
-      }
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        alert("提交失败。");
-        return;
-      }
-
-      const label = choice === "keep" ? "希望继续连任" : "希望下台";
-      disableVoting(`投票成功：${label}`);
-      await refreshStats();
-    }
-
-    document.getElementById("voteKeep").addEventListener("click", () => submitVote("keep"));
-    document.getElementById("voteStepDown").addEventListener("click", () => submitVote("stepdown"));
-
-    refreshStats().catch(() => {});
-    refreshMe().catch(() => {});
-    setInterval(() => refreshStats().catch(() => {}), 5000);
+    calculateTenureAndAge();
+    setInterval(calculateTenureAndAge, 60 * 1000);
+    refreshAll();
+    setInterval(refreshAll, 30 * 1000);
   </script>
 </body>
-
 </html>
