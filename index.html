@@ -33,7 +33,7 @@
         <div class="flex items-center gap-2">
           <button id="musicToggle" class="music-btn flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold active:scale-95" style="background:#FFD700; color:#CC0000; border:1px solid #CC0000;">
             <span>🎵</span>
-            <span class="btn-text-wrap"><span id="musicText">播放</span></span>
+            <span class="btn-text-wrap"><span id="musicText">点我播放</span></span>
           </button>
         </div>
       </div>
@@ -148,41 +148,35 @@
 
     function onYTReady(e) {
       e.target.setVolume(80);
+      e.target.mute();
+
       const btn = document.getElementById('musicToggle');
       const txt = document.getElementById('musicText');
 
-      btn.addEventListener('click', function () {
-        if (!isPlaying) {
-          yt.playVideo();
+      txt.innerText = '点我播放';
+
+      function tryPlay() {
+        yt.mute();
+        yt.playVideo();
+        setTimeout(function () {
           yt.unMute();
           yt.setVolume(80);
-          isPlaying = true;
-          btn.classList.add('playing');
-          txt.innerText = '播放中';
+        }, 300);
+        isPlaying = true;
+        btn.classList.add('playing');
+        txt.innerText = '播放中';
+      }
+
+      btn.addEventListener('click', function () {
+        if (!isPlaying) {
+          tryPlay();
         } else {
           yt.pauseVideo();
           isPlaying = false;
           btn.classList.remove('playing');
-          txt.innerText = '播放';
+          txt.innerText = '点我播放';
         }
       });
-
-      var start = function () {
-        if (!isPlaying) {
-          yt.playVideo();
-          yt.unMute();
-          yt.setVolume(80);
-          isPlaying = true;
-          btn.classList.add('playing');
-          txt.innerText = '播放中';
-        }
-        document.removeEventListener('click', start);
-        document.removeEventListener('touchstart', start);
-        document.removeEventListener('keydown', start);
-      };
-      document.addEventListener('click', start);
-      document.addEventListener('touchstart', start);
-      document.addEventListener('keydown', start);
     }
 
     function pad(x) { return String(x).padStart(2, '0'); }
