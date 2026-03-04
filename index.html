@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>习近平下台了吗？</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- 可选：Turnstile（正式发布建议开）。如果你不想用，删掉下面这一行和页面里的 turnstileToken 相关代码即可 -->
+  <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
+
+  <style>
+    body {
+      background-color: #f3f4f6;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .counter-font {
+      font-family: 'Courier New', monospace;
+      letter-spacing: -2px;
+    }
+
+    .pulse-dot-green {
+      box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+      animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+      }
+
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+      }
+    }
+
+    .flag-watermark {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0) 50%, rgba(250, 204, 21, 0.05) 100%);
+    }
+
+    .music-btn {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      width: 90px;
+      overflow: hidden;
+    }
+
+    #youtube-player {
+      pointer-events: none;
+      opacity: 0.01;
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 pb-20">
+
+  <div id="youtube-player"></div>
+
+  <div class="w-full max-w-md bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xl relative flag-watermark">
+
+    <div class="relative overflow-hidden border-b border-gray-100" style="background:#ffffff; padding:16px 20px 14px;">
+      <div class="flex justify-between items-center relative z-10">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded"
+              style="background:#F59E0B; color:#111827; border:1px solid #F59E0B;">
+              ● 状态查询
+            </span>
+          </div>
+          <div class="font-black leading-none" style="font-size:26px; letter-spacing:-0.5px; color:#111827;">
+            习近平下台了吗？
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="musicToggle"
+            class="music-btn flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold active:scale-95"
+            style="background:#FFD700; color:#CC0000; border:1px solid #CC0000;">
+            <span>🎵</span>
+            <span id="musicText">播放</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-red-50 via-white to-yellow-50 border-b border-gray-100 text-gray-700 text-xs font-bold tracking-wide">
+      <span class="text-base">&#x1F1E8;&#x1F1F3;</span>
+      <span>愿台海永无战争</span>
+      <span class="text-base">&#x1F1E8;&#x1F1F3;</span>
+    </div>
+
+    <div class="p-6 relative border-b border-gray-100 bg-amber-50/40">
+      <div class="absolute top-4 right-4 !text-gray-900/10 text-8xl font-black select-none pointer-events-none">
+        <img src="./image.jpg" alt="Xi Jinping"
+          class="w-24 h-24 object-cover rounded-full border-4 border-black bg-white shadow-sm">
+      </div>
+
+      <h1 class="text-2xl font-bold text-gray-900 leading-tight mb-1">习近平</h1>
+      <p class="text-gray-600 text-sm mb-6">Xi Jinping · 中国国家主席 / 中共中央总书记</p>
+
+      <div class="bg-white rounded-xl p-5 border border-amber-200 relative overflow-hidden shadow-sm opacity-95">
+        <div class="text-gray-500 text-xs uppercase tracking-wider mb-2">
+          任期天数
+        </div>
+        <div id="tenure-days" class="text-4xl font-bold text-amber-700 counter-font mb-4">Calculating...</div>
+
+        <div class="text-amber-700 text-xs mt-0.5 font-mono" id="updated-at">Updated: --</div>
+
+        <div class="flex justify-between mt-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
+          <span>生: 1953.06.15</span>
+          <span id="age-info" class="text-amber-700 font-bold bg-amber-50 px-1 rounded">年龄: --</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 bg-white">
+      <div class="text-sm font-black text-gray-900 mb-3">匿名投票</div>
+
+      <!-- 可选：Turnstile 小组件（正式发布建议开）。要用就取消注释，并在 Cloudflare 配置 sitekey -->
+      <!--
+      <div class="mb-3">
+        <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY"></div>
+      </div>
+      -->
+
+      <div class="grid grid-cols-2 gap-3">
+        <button id="voteKeep"
+          class="px-3 py-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 font-bold text-sm active:scale-95">
+          希望继续连任
+        </button>
+        <button id="voteStepDown"
+          class="px-3 py-3 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 font-bold text-sm active:scale-95">
+          希望下台
+        </button>
+      </div>
+
+      <div class="mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-4">
+        <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+          <span>统计</span>
+          <span id="voteUpdated" class="font-mono">Updated: --</span>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs">
+              <span class="font-bold text-emerald-900">继续连任</span>
+              <span id="keepCount" class="font-mono text-gray-700">0</span>
+            </div>
+            <div class="w-full h-2 bg-white rounded-full overflow-hidden border border-gray-100 mt-1">
+              <div id="keepBar" class="h-2 bg-emerald-400" style="width:0%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs">
+              <span class="font-bold text-rose-900">希望下台</span>
+              <span id="stepDownCount" class="font-mono text-gray-700">0</span>
+            </div>
+            <div class="w-full h-2 bg-white rounded-full overflow-hidden border border-gray-100 mt-1">
+              <div id="stepDownBar" class="h-2 bg-rose-400" style="width:0%;"></div>
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-600" id="voteNote"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-2 w-full bg-red-600"></div>
+  </div>
+
+  <script>
+    // ---------- cookie voter_id（每个浏览器一个随机 id） ----------
+    function getCookie(name) {
+      const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+      return m ? decodeURIComponent(m[2]) : null;
+    }
+
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/; SameSite=Lax; Secure`;
+    }
+
+    function ensureVoterId() {
+      let id = getCookie("voter_id");
+      if (!id) {
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + "-" + Math.random());
+        setCookie("voter_id", id, 3650);
+      }
+      return id;
+    }
+    ensureVoterId();
+
+    // ---------- YouTube 单曲播放器 ----------
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    var isPlaying = false;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        height: '1',
+        width: '1',
+        videoId: 'MGhM4lxlewI',
+        playerVars: {
+          'playsinline': 1,
+          'controls': 0,
+          'fs': 0,
+          'loop': 1,
+          'playlist': 'MGhM4lxlewI',
+          'origin': window.location.origin
+        },
+        events: { 'onReady': onPlayerReady }
+      });
+    }
+
+    function onPlayerReady(event) {
+      event.target.setVolume(80);
+      const btn = document.getElementById('musicToggle');
+      const text = document.getElementById('musicText');
+
+      btn.addEventListener('click', function () {
+        if (!isPlaying) {
+          player.playVideo();
+          isPlaying = true;
+          text.innerText = '暂停';
+          setTimeout(() => { player.unMute(); player.setVolume(80); }, 300);
+        } else {
+          player.pauseVideo();
+          isPlaying = false;
+          text.innerText = '播放';
+        }
+      });
+    }
+
+    // ---------- 任期天数 + 年龄 ----------
+    function calculateTenureAndAge() {
+      const tenureStart = new Date('2012-11-15');
+      const now = new Date();
+
+      const startDay = new Date(tenureStart); startDay.setHours(0, 0, 0, 0);
+      const nowDay = new Date(now); nowDay.setHours(0, 0, 0, 0);
+
+      const diffTime = Math.abs(nowDay - startDay);
+      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      document.getElementById('tenure-days').innerText = days.toLocaleString() + " 天";
+
+      const birth = new Date('1953-06-15');
+      let age = now.getFullYear() - birth.getFullYear();
+      const m = now.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+        age--;
+      }
+      document.getElementById('age-info').innerText = `年龄: ${age}`;
+
+      const pad = (x) => String(x).padStart(2, '0');
+      document.getElementById('updated-at').innerText =
+        `Updated: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+    calculateTenureAndAge();
+    setInterval(calculateTenureAndAge, 60 * 1000);
+
+    // ---------- 统计与投票（D1） ----------
+    function pad2(x) { return String(x).padStart(2, "0"); }
+    function setVoteUpdated() {
+      const now = new Date();
+      document.getElementById("voteUpdated").innerText =
+        `Updated: ${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    }
+
+    function disableVoting(note) {
+      document.getElementById("voteKeep").disabled = true;
+      document.getElementById("voteStepDown").disabled = true;
+      document.getElementById("voteKeep").classList.add("opacity-50");
+      document.getElementById("voteStepDown").classList.add("opacity-50");
+      document.getElementById("voteNote").innerText = note || "";
+    }
+
+    async function refreshStats() {
+      const res = await fetch("/api/stats?t=" + Date.now(), { cache: "no-store" });
+      const data = await res.json();
+
+      const keep = Number(data.keep || 0);
+      const stepdown = Number(data.stepdown || 0);
+      const total = Number(data.total || 0);
+
+      document.getElementById("keepCount").innerText = String(keep);
+      document.getElementById("stepDownCount").innerText = String(stepdown);
+
+      const keepPct = total === 0 ? 0 : Math.round((keep / total) * 100);
+      const stepPct = total === 0 ? 0 : (100 - keepPct);
+
+      document.getElementById("keepBar").style.width = keepPct + "%";
+      document.getElementById("stepDownBar").style.width = stepPct + "%";
+
+      if (total === 0) {
+        document.getElementById("voteNote").innerText = "";
+      } else {
+        document.getElementById("voteNote").innerText = `总票数: ${total}。继续连任 ${keepPct}% / 希望下台 ${stepPct}%。`;
+      }
+
+      setVoteUpdated();
+    }
+
+    async function refreshMe() {
+      const res = await fetch("/api/me?t=" + Date.now(), { cache: "no-store" });
+      const me = await res.json();
+      if (me && me.voted) {
+        const label = me.choice === "keep" ? "希望继续连任" : "希望下台";
+        disableVoting(`你已经投过票：${label}`);
+      }
+    }
+
+    async function submitVote(choice) {
+      // 可选：Turnstile token（如果你启用了 Turnstile）
+      let turnstileToken = null;
+      // if (window.turnstile) {
+      //   turnstileToken = turnstile.getResponse();
+      // }
+
+      const res = await fetch("/api/vote", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ choice, turnstileToken })
+      });
+
+      if (res.status === 409) {
+        disableVoting("你已经投过票。");
+        await refreshStats();
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        alert("提交失败。");
+        return;
+      }
+
+      const label = choice === "keep" ? "希望继续连任" : "希望下台";
+      disableVoting(`投票成功：${label}`);
+      await refreshStats();
+    }
+
+    document.getElementById("voteKeep").addEventListener("click", () => submitVote("keep"));
+    document.getElementById("voteStepDown").addEventListener("click", () => submitVote("stepdown"));
+
+    refreshStats().catch(() => {});
+    refreshMe().catch(() => {});
+    setInterval(() => refreshStats().catch(() => {}), 5000);
+  </script>
+</body>
+
+</html>
